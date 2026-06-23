@@ -1,241 +1,205 @@
-<!DOCTYPE html>
+          <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cronograma Enem com Pomodoro</title>
+    <title>Dashboard Enem: Ultra Foco com YouTube e Métricas</title>
     <style>
         :root {
-            --primary: #2563eb;
+            --primary: #1e3a8a;
+            --primary-light: #eff6ff;
+            --accent: #3b82f6;
             --success: #10b981;
             --danger: #ef4444;
             --bg: #f8fafc;
             --card-bg: #ffffff;
             --text: #1e293b;
+            --text-muted: #64748b;
         }
+        
+        * { box-sizing: border-box; margin: 0; padding: 0; }
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background-color: var(--bg);
             color: var(--text);
-            margin: 0;
+            line-height: 1.5;
             padding: 20px;
         }
-        .container {
-            max-width: 900px;
-            margin: 0 auto;
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 20px;
+        .container { max-width: 1200px; margin: 0 auto; }
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #e2e8f0;
         }
-        @media (min-width: 768px) {
-            .container { grid-template-columns: 2fr 1fr; }
-            header { grid-column: span 2; }
-        }
-        header { text-align: center; margin-bottom: 10px; }
-        h1 { color: var(--primary); margin-bottom: 5px; }
+        header h1 { color: var(--primary); font-size: 2rem; margin-bottom: 8px; }
         
-        /* Painel Lateral / Timer e Monitoramento */
-        .sidebar {
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-        }
+        .layout { display: flex; gap: 20px; flex-wrap: wrap; }
+        .main-content { flex: 2; min-width: 350px; }
+        .sidebar { flex: 1; min-width: 300px; display: flex; flex-direction: column; gap: 20px; }
+
         .panel {
             background: var(--card-bg);
             padding: 20px;
             border-radius: 12px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-            text-align: center;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.03);
+            border: 1px solid #e2e8f0;
         }
-        
+        .panel-title { font-size: 1.1rem; color: var(--primary); margin-bottom: 15px; font-weight: bold; }
+
         /* Timer Pomodoro */
         .timer-display {
-            font-size: 3rem;
-            font-weight: bold;
-            margin: 10px 0;
-            font-family: monospace;
-            color: var(--text);
+            font-size: 3.5rem; font-weight: 700; margin: 15px 0;
+            font-family: monospace; color: var(--primary); text-align: center;
+            background: #f1f5f9; padding: 10px; border-radius: 8px; letter-spacing: 2px;
         }
-        .timer-status {
-            font-weight: bold;
-            text-transform: uppercase;
-            color: var(--primary);
-            margin-bottom: 10px;
-        }
-        .timer-controls .btn-timer {
-            padding: 8px 15px;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            font-weight: bold;
-            margin: 0 3px;
-        }
+        .timer-status { font-weight: bold; text-transform: uppercase; color: var(--accent); text-align: center; }
+        .timer-controls { text-align: center; margin-bottom: 10px; }
+        .btn-timer { padding: 10px 18px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; margin: 0 4px; }
         .btn-start { background: var(--success); color: white; }
         .btn-pause { background: #f59e0b; color: white; }
         .btn-reset { background: var(--danger); color: white; }
-        
-        /* Barra de Progresso / Monitoramento */
-        .progress-container {
-            background: #e2e8f0;
-            border-radius: 10px;
-            height: 20px;
-            width: 100%;
-            overflow: hidden;
-            margin-top: 10px;
-        }
-        .progress-bar {
-            background: var(--success);
-            height: 100%;
-            width: 0%;
-            transition: width 0.3s ease;
-        }
 
-        /* Seção do Cronograma */
-        .main-content {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-        }
-        .semana-navigation {
-            display: flex;
-            gap: 8px;
-        }
-        .btn-sem {
-            flex: 1;
-            padding: 10px;
-            border: none;
-            background: #e2e8f0;
-            border-radius: 6px;
-            cursor: pointer;
-            font-weight: bold;
-        }
-        .btn-sem.active { background: var(--primary); color: white; }
+        /* Monitoramento */
+        .progress-info { display: flex; justify-content: space-between; font-size: 0.95rem; margin-bottom: 8px; }
+        .progress-container { background: #e2e8f0; border-radius: 10px; height: 20px; width: 100%; overflow: hidden; margin-bottom: 15px; }
+        .progress-bar { background: linear-gradient(90deg, var(--accent), var(--success)); height: 100%; width: 0%; transition: width 0.4s ease; }
+
+        /* Abas Semanas */
+        .semana-navigation { display: flex; margin-bottom: 20px; background: #e2e8f0; padding: 4px; border-radius: 8px; gap: 4px; }
+        .btn-sem { flex: 1; padding: 10px; border: none; background: transparent; color: var(--text); border-radius: 6px; cursor: pointer; font-weight: bold; }
+        .btn-sem.active { background: var(--card-bg); color: var(--primary); box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+
+        /* Cards de Dias */
+        .dia-card { background: var(--card-bg); border-radius: 12px; padding: 20px; margin-bottom: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.03); border: 1px solid #e2e8f0; }
+        .dia-titulo { color: var(--primary); font-size: 1.2rem; margin-bottom: 12px; padding-bottom: 6px; border-bottom: 2px solid var(--primary-light); }
+        .pomodoro-flow { font-size: 0.85rem; color: #475569; background: var(--primary-light); padding: 10px; border-radius: 6px; margin-bottom: 15px; border-left: 4px solid var(--accent); }
         
-        .dia-card {
-            background: var(--card-bg);
-            border-radius: 12px;
-            padding: 15px 20px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        .tarefa-item { background: #f8fafc; padding: 15px; border-radius: 8px; margin-bottom: 12px; border: 1px solid #edf2f7; }
+        .tarefa-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+        .tarefa-left { display: flex; align-items: center; gap: 10px; }
+        .tarefa-item input[type="checkbox"] { transform: scale(1.3); cursor: pointer; }
+        .tarefa-label { font-weight: 600; font-size: 0.95rem; cursor: pointer; }
+        
+        /* Botão do YouTube */
+        .btn-youtube {
+            background: #ff0000; color: white; border: none; padding: 6px 12px; 
+            border-radius: 6px; cursor: pointer; font-size: 0.8rem; font-weight: bold;
+            text-decoration: none; display: inline-flex; align-items: center; gap: 4px;
         }
-        .dia-titulo {
-            color: var(--primary);
-            margin: 0 0 10px 0;
-            border-bottom: 2px solid #f1f5f9;
-            padding-bottom: 5px;
-        }
-        .pomodoro-flow {
-            font-size: 0.85rem;
-            color: #64748b;
-            background: #f1f5f9;
-            padding: 6px 10px;
-            border-radius: 6px;
-            margin-bottom: 10px;
-        }
-        .tarefa-item {
-            display: flex;
-            align-items: center;
-            margin: 8px 0;
-        }
-        .tarefa-item input {
-            margin-right: 10px;
-            transform: scale(1.2);
-            cursor: pointer;
-        }
+        .btn-youtube:hover { background: #cc0000; }
+
+        /* Inputs de Exercícios */
+        .exercicios-box { display: flex; gap: 10px; align-items: center; background: #ffffff; padding: 8px; border-radius: 6px; border: 1px solid #e2e8f0; margin-top: 8px; }
+        .exercicios-box label { font-size: 0.8rem; color: var(--text-muted); }
+        .exercicios-box input { width: 50px; padding: 4px; border: 1px solid #cbd5e1; border-radius: 4px; text-align: center; }
+        .taxa-acerto { font-size: 0.85rem; font-weight: bold; color: var(--success); margin-left: auto; }
     </style>
 </head>
 <body>
 
 <div class="container">
     <header>
-        <h1>🎯 Dashboard Enem: Rotina & Minutos</h1>
-        <p>Estude usando a Técnica Pomodoro (25 min de foco + 5 min de descanso) e monitore sua evolução.</p>
+        <h1>🎯 Dashboard Enem: Rotina, Métricas & Vídeos</h1>
+        <p>Acompanhe o seu progresso, gira os seus ciclos Pomodoro, registe as suas notas e encontre videoaulas num clique.</p>
     </header>
 
-    <div class="main-content">
-        <div class="semana-navigation">
-            <button class="btn-sem active" onclick="mudarSemana(1)">Semana 1</button>
-            <button class="btn-sem" onclick="mudarSemana(2)">Semana 2</button>
-            <button class="btn-sem" onclick="mudarSemana(3)">Semana 3</button>
-            <button class="btn-sem" onclick="mudarSemana(4)">Semana 4</button>
-        </div>
-        <div id="cronograma-conteudo"></div>
-    </div>
-
-    <div class="sidebar">
-        <div class="panel">
-            <div class="timer-status" id="timer-label">Foco (Bloco 1)</div>
-            <div class="timer-display" id="timer-clock">25:00</div>
-            <div class="timer-controls">
-                <button class="btn-timer btn-start" onclick="startTimer()">Iniciar</button>
-                <button class="btn-timer btn-pause" onclick="pauseTimer()">Pausar</button>
-                <button class="btn-timer btn-reset" onclick="resetTimer()">Resetar</button>
+    <div class="layout">
+        <div class="main-content">
+            <div class="semana-navigation">
+                <button class="btn-sem active" onclick="mudarSemana(1)">Semana 1</button>
+                <button class="btn-sem" onclick="mudarSemana(2)">Semana 2</button>
+                <button class="btn-sem" onclick="mudarSemana(3)">Semana 3</button>
+                <button class="btn-sem" onclick="mudarSemana(4)">Semana 4</button>
             </div>
-            <div style="margin-top: 15px; font-size: 0.8rem; color: #64748b;">
-                Alterne entre 25 min de Foco / 5 min de Pausa
-            </div>
+            <div id="cronograma-conteudo"></div>
         </div>
 
-        <div class="panel">
-            <h3>📈 Monitoramento</h3>
-            <div style="font-size: 0.9rem; text-align: left; margin-bottom: 5px;">
-                Tarefas Concluídas: <span id="txt-progresso" style="font-weight: bold;">0/40</span>
+        <div class="sidebar">
+            <div class="panel">
+                <div class="panel-title">⏱️ Timer Pomodoro</div>
+                <div class="timer-status" id="timer-label">Foco (Bloco 1)</div>
+                <div class="timer-display" id="timer-clock">25:00</div>
+                <div class="timer-controls">
+                    <button class="btn-timer btn-start" onclick="startTimer()">Iniciar</button>
+                    <button class="btn-timer btn-pause" onclick="pauseTimer()">Pausar</button>
+                    <button class="btn-timer btn-reset" onclick="resetTimer()">Resetar</button>
+                </div>
+                <div style="margin-top: 15px; font-size: 0.9rem; font-weight: bold; color: var(--text-muted); text-align: center;">
+                    🍅 Ciclos concluídos hoje: <span id="pomodoros-total" style="color: var(--accent);">0</span>
+                </div>
             </div>
-            <div class="progress-container">
-                <div class="progress-bar" id="barra-progresso"></div>
-            </div>
-            <div style="font-size: 0.85rem; color: #64748b; margin-top: 15px; text-align: left;">
-                • Cada dia possui 2 blocos de matérias estruturados em Pomodoros.<br>
-                • Marque o check ao concluir as tarefas do dia.
+
+            <div class="panel">
+                <div class="panel-title">📈 Seu Progresso Real</div>
+                <div class="progress-info">
+                    <span>Módulos Estudados</span>
+                    <span id="txt-progresso" style="font-weight: bold; color: var(--success);">0/40 (0%)</span>
+                </div>
+                <div class="progress-container">
+                    <div class="progress-bar" id="barra-progresso"></div>
+                </div>
+                <div style="font-size: 0.9rem; color: var(--text);">
+                    🎯 **Taxa Média de Acertos:** <span id="media-acertos-geral" style="font-weight: bold; color: var(--accent);">0%</span>
+                </div>
             </div>
         </div>
     </div>
 </div>
 
 <script>
-    // Dados do Cronograma detalhado em minutos por dia
     const dadosCronograma = {
         1: [
-            { dia: "Segunda-feira", t1: "📊 Matemática Básica (Razão, Proporção, Regra de 3)", t2: "🧬 Biologia (Ecologia: Cadeias alimentares e impactos)" },
-            { dia: "Terça-feira", t1: "🌍 História (Brasil Colônia)", t2: "🌍 Geografia (Questões agrárias e uso da terra)" },
-            { dia: "Quarta-feira", t1: "📊 Matemática Básica (Porcentagem e frações)", t2: "🧬 Química (Química Ambiental: Poluição)" },
-            { dia: "Quinta-feira", t1: "🌍 Filosofia/Sociologia (Cidadania e Democracia)", t2: "🧬 Física (Mecânica: Cinemática)" },
-            { dia: "Sexta-feira", t1: "🔄 Revisão Geral da Semana 1", t2: "📝 15 Questões de Interpretação (Linguagens)" }
+            { dia: "Segunda-feira", t1: "Matemática Básica Razão Proporção Regra de 3", t1_ex: "Matemática Básica (Razão, Proporção, Regra de 3)", t2: "Biologia Ecologia Cadeias alimentares", t2_ex: "Biologia (Ecologia: Cadeias alimentares e impactos)" },
+            { dia: "Terça-feira", t1: "História Brasil Colônia", t1_ex: "História (Brasil Colônia)", t2: "Geografia Questões agrárias e uso da terra", t2_ex: "Geografia (Questões agrárias e uso da terra)" },
+            { dia: "Quarta-feira", t1: "Matemática Básica Porcentagem e frações", t1_ex: "Matemática Básica (Porcentagem e frações)", t2: "Química Química Ambiental Poluição", t2_ex: "Química (Química Ambiental: Poluição)" },
+            { dia: "Quinta-feira", t1: "Filosofia Sociologia Cidadania e Democracia", t1_ex: "Filosofia/Sociologia (Cidadania e Democracia)", t2: "Física Mecânica Cinemática", t2_ex: "Física (Mecânica: Cinemática)" },
+            { dia: "Sexta-feira", t1: "Revisão Geral Enem", t1_ex: "Revisão Geral da Semana 1", t2: "Interpretação de Texto Linguagens Enem", t2_ex: "15 Questões de Interpretação (Linguagens)" }
         ],
         2: [
-            { dia: "Segunda-feira", t1: "📊 Estatística (Gráficos, tabelas, média, moda, mediana)", t2: "🧬 Biologia (Citologia e Fisiologia Humana)" },
-            { dia: "Terça-feira", t1: "🌍 História (Brasil República)", t2: "🌍 Geografia (Urbanização e desafios)" },
-            { dia: "Quarta-feira", t1: "🧬 Química Orgânica (Funções e propriedades)", t2: "🧬 Física (Mecânica: Trabalho e Energia)" },
-            { dia: "Quinta-feira", t1: "🌍 Filosofia/Sociologia (Movimentos Sociais)", t2: "📊 Matemática (Geometria Plana: Áreas)" },
-            { dia: "Sexta-feira", t1: "🔄 Revisão Geral da Semana 2", t2: "📝 Treino de Redação (Eixos Sociais)" }
+            { dia: "Segunda-feira", t1: "Estatística Gráficos tabelas média moda mediana", t1_ex: "Estatística (Gráficos, tabelas, média, moda, mediana)", t2: "Biologia Citologia Fisiologia Humana", t2_ex: "Biologia (Citologia e Fisiologia Humana)" },
+            { dia: "Terça-feira", t1: "História Brasil República", t1_ex: "História (Brasil República)", t2: "Geografia Urbanização e desafios", t2_ex: "Geografia (Urbanização e desafios)" },
+            { dia: "Quarta-feira", t1: "Química Orgânica Funções propriedades", t1_ex: "Química Orgânica (Funções e propriedades)", t2: "Física Mecânica Trabalho Energia", t2_ex: "Física (Mecânica: Trabalho e Energia)" },
+            { dia: "Quinta-feira", t1: "Filosofia Sociologia Movimentos Sociais", t1_ex: "Filosofia/Sociologia (Movimentos Sociais)", t2: "Matemática Geometria Plana Áreas", t2_ex: "Matemática (Geometria Plana: Áreas)" },
+            { dia: "Sexta-feira", t1: "Revisão Geral Enem", t1_ex: "Revisão Geral da Semana 2", t2: "Como fazer Redação nota 1000 Enem", t2_ex: "Treino de Redação (Eixos Sociais)" }
         ],
         3: [
-            { dia: "Segunda-feira", t1: "📊 Matemática (Geometria Espacial: Volumes)", t2: "🧬 Biologia (Genética: DNA, RNA e biotecnologia)" },
-            { dia: "Terça-feira", t1: "🌍 História (Segunda Guerra Mundial)", t2: "🌍 Geografia (Globalização e blocos)" },
-            { dia: "Quarta-feira", t1: "🧬 Química (Físico-química: Soluções e eletroquímica)", t2: "🧬 Física (Eletrodinâmica: Circuitos)" },
-            { dia: "Quinta-feira", t1: "🌍 Filosofia/Sociologia (Antiga e Moderna)", t2: "📊 Matemática (Funções de 1º e 2º graus)" },
-            { dia: "Sexta-feira", t1: "🔄 Revisão Geral da Semana 3", t2: "📝 Questões de Linguagens (Argumentação)" }
+            { dia: "Segunda-feira", t1: "Matemática Geometria Espacial Volumes", t1_ex: "Matemática (Geometria Espacial: Volumes)", t2: "Biologia Genética DNA RNA biotecnologia", t2_ex: "Biologia (Genética: DNA, RNA e biotecnologia)" },
+            { dia: "Terça-feira", t1: "História Segunda Guerra Mundial", t1_ex: "História (Segunda Guerra Mundial)", t2: "Geografia Globalização e blocos", t2_ex: "Geografia (Globalizzazione e blocos)" },
+            { dia: "Quarta-feira", t1: "Química Físico química Soluções eletroquímica", t1_ex: "Química (Físico-química: Soluções e eletroquímica)", t2: "Física Eletrodinâmica Circuitos", t2_ex: "Física (Eletrodinâmica: Circuitos)" },
+            { dia: "Quinta-feira", t1: "Filosofia Sociologia Antiga e Moderna", t1_ex: "Filosofia/Sociologia (Antiga e Moderna)", t2: "Matemática Funções de 1 e 2 graus", t2_ex: "Matemática (Funções de 1º e 2º graus)" },
+            { dia: "Sexta-feira", t1: "Revisão Geral Enem", t1_ex: "Revisão Geral da Semana 3", t2: "Questões Linguagens Estratégias argumentação", t2_ex: "Questões de Linguagens (Argumentação)" }
         ],
         4: [
-            { dia: "Segunda-feira", t1: "📊 Matemática (Trigonometria básica)", t2: "🧬 Física (Ondulatória e Termologia)" },
-            { dia: "Terça-feira", t1: "🌍 História (Ditadura Militar)", t2: "🌍 Geografia (Meio Ambiente e Cartografia)" },
-            { dia: "Quarta-feira", t1: "🧬 Revisão de Química Orgânica e Físico-química", t2: "🧬 Revisão de Ecologia" },
-            { dia: "Quinta-feira", t1: "📊 Revisão de Fórmulas (Geometria e Estatística)", t2: "📊 Revisão de Funções" },
-            { dia: "Sexta-feira", t1: "🧠 Revisão Leve de Resumos Próprios", t2: "🧘 Descanso e Preparação Mental" }
+            { dia: "Segunda-feira", t1: "Matemática Trigonometria básica", t1_ex: "Matemática (Trigonometria básica)", t2: "Física Ondulatória Termologia", t2_ex: "Física (Ondulatória e Termologia)" },
+            { dia: "Terça-feira", t1: "História Ditadura Militar", t1_ex: "História (Ditadura Militar)", t2: "Geografia Meio Ambiente Cartografia", t2_ex: "Geografia (Meio Ambiente e Cartografia)" },
+            { dia: "Quarta-feira", t1: "Revisão Química Orgânica Físico química", t1_ex: "Revisão de Química Orgânica e Físico-química", t2: "Revisão de Ecologia Enem", t2_ex: "Revisão de Ecologia" },
+            { dia: "Quinta-feira", t1: "Revisão de Fórmulas Geometria Estatística", t1_ex: "Revisão de Fórmulas (Geometria e Estatística)", t2: "Revisão Funções Enem", t2_ex: "Revisão de Funções" },
+            { dia: "Sexta-feira", t1: "Revisão Leve Resumos Próprios", t1_ex: "Revisão Leve de Resumos Próprios", t2: "Descanso Mental Enem", t2_ex: "Descanso e Preparação Mental" }
         ]
     };
 
-    let checkadas = {};
-    let currentSemana = 1;
+    // Inicialização do Estado (carrega do localStorage se existir)
+    let estadoApp = JSON.parse(localStorage.getItem('estadoAppEnem')) || {
+        checkadas: {},
+        exercicios: {},
+        pomodorosHoje: 0
+    };
 
-    // Lógica do Timer Pomodoro
+    let currentSemana = 1;
     let timerInterval = null;
-    let timeRemaining = 25 * 60; // 25 minutos em segundos
+    let timeRemaining = 25 * 60; 
     let isWorking = true;
+
+    function salvarDados() {
+        localStorage.setItem('estadoAppEnem', JSON.stringify(estadoApp));
+    }
 
     function updateTimerDisplay() {
         const minutes = Math.floor(timeRemaining / 60).toString().padStart(2, '0');
         const seconds = (timeRemaining % 60).toString().padStart(2, '0');
         document.getElementById('timer-clock').innerText = `${minutes}:${seconds}`;
+        document.getElementById('pomodoros-total').innerText = estadoApp.pomodorosHoje;
     }
 
     function startTimer() {
@@ -247,31 +211,23 @@
             } else {
                 clearInterval(timerInterval);
                 timerInterval = null;
-                // Alterna automaticamente entre Foco e Descanso quando zera
+                if(isWorking) {
+                    estadoApp.pomodorosHoje++;
+                    salvarDados();
+                }
                 isWorking = !isWorking;
                 timeRemaining = isWorking ? 25 * 60 : 5 * 60;
                 document.getElementById('timer-label').innerText = isWorking ? "Foco (25 min)" : "Pausa Curta (5 min)";
-                alert(isWorking ? "Hora de focar! Bloco iniciado." : "Muito bem! Tire 5 minutos de descanso.");
+                alert(isWorking ? "Hora de focar! Bloco iniciado." : "Muito bem! Tire 5 minutos para descansar.");
                 updateTimerDisplay();
                 startTimer();
             }
         }, 1000);
     }
 
-    function pauseTimer() {
-        clearInterval(timerInterval);
-        timerInterval = null;
-    }
+    function pauseTimer() { clearInterval(timerInterval); timerInterval = null; }
+    function resetTimer() { pauseTimer(); isWorking = true; timeRemaining = 25 * 60; document.getElementById('timer-label').innerText = "Foco (Bloco 1)"; updateTimerDisplay(); }
 
-    function resetTimer() {
-        pauseTimer();
-        isWorking = true;
-        timeRemaining = 25 * 60;
-        document.getElementById('timer-label').innerText = "Foco (Bloco 1)";
-        updateTimerDisplay();
-    }
-
-    // Interface e Monitoramento
     function renderizarSemana(semanaNum) {
         const container = document.getElementById('cronograma-conteudo');
         container.innerHTML = '';
@@ -281,21 +237,54 @@
             const id1 = `s${semanaNum}d${index}t1`;
             const id2 = `s${semanaNum}d${index}t2`;
 
+            const ex1 = estadoApp.exercicios[id1] || { feitas: '', acertos: '' };
+            const ex2 = estadoApp.exercicios[id2] || { feitas: '', acertos: '' };
+
             const card = document.createElement('div');
             card.className = 'dia-card';
             card.innerHTML = `
-                <h3 class="dia-titulo">${item.dia}</h3>
-                <div class="pomodoro-flow">⏱️ <strong>Rotina do dia:</strong> 25min (Matéria 1) → 5min Pausa → 25min (Matéria 1) → 20min Descanso Longo → Repete o ciclo para a Matéria 2.</div>
-                <div class="tarefa-item">
-                    <input type="checkbox" id="${id1}" ${checkadas[id1] ? 'checked' : ''} onchange="atualizarProgresso('${id1}')">
-                    <label for="${id1}"><strong>Bloco 1:</strong> ${item.t1}</label>
+                <h3 class="dia-titulo">📅 ${item.dia}</h3>
+                <div class="pomodoro-flow">
+                    <strong>Estrutura de Minutos para hoje:</strong> 25min foco + 5min pausa por bloco de matéria.
                 </div>
+                
                 <div class="tarefa-item">
-                    <input type="checkbox" id="${id2}" ${checkadas[id2] ? 'checked' : ''} onchange="atualizarProgresso('${id2}')">
-                    <label for="${id2}"><strong>Bloco 2:</strong> ${item.t2}</label>
+                    <div class="tarefa-header">
+                        <div class="tarefa-left">
+                            <input type="checkbox" id="${id1}" ${estadoApp.checkadas[id1] ? 'checked' : ''} onchange="atualizarProgresso('${id1}')">
+                            <label for="${id1}" class="tarefa-label">${item.t1_ex}</label>
+                        </div>
+                        <a class="btn-youtube" href="https://www.youtube.com/results?search_query=${encodeURIComponent(item.t1 + ' enem')}" target="_blank">▶ Procurar Aula</a>
+                    </div>
+                    <div class="exercicios-box">
+                        <label>Questões:</label>
+                        <input type="number" id="feitas-${id1}" value="${ex1.feitas}" placeholder="0" oninput="salvarEx('${id1}')">
+                        <label>Acertos:</label>
+                        <input type="number" id="acertos-${id1}" value="${ex1.acertos}" placeholder="0" oninput="salvarEx('${id1}')">
+                        <span class="taxa-acerto" id="taxa-${id1}">-</span>
+                    </div>
+                </div>
+
+                <div class="tarefa-item">
+                    <div class="tarefa-header">
+                        <div class="tarefa-left">
+                            <input type="checkbox" id="${id2}" ${estadoApp.checkadas[id2] ? 'checked' : ''} onchange="atualizarProgresso('${id2}')">
+                            <label for="${id2}" class="tarefa-label">${item.t2_ex}</label>
+                        </div>
+                        <a class="btn-youtube" href="https://www.youtube.com/results?search_query=${encodeURIComponent(item.t2 + ' enem')}" target="_blank">▶ Procurar Aula</a>
+                    </div>
+                    <div class="exercicios-box">
+                        <label>Questões:</label>
+                        <input type="number" id="feitas-${id2}" value="${ex2.feitas}" placeholder="0" oninput="salvarEx('${id2}')">
+                        <label>Acertos:</label>
+                        <input type="number" id="acertos-${id2}" value="${ex2.acertos}" placeholder="0" oninput="salvarEx('${id2}')">
+                        <span class="taxa-acerto" id="taxa-${id2}">-</span>
+                    </div>
                 </div>
             `;
             container.appendChild(card);
+            calcularTaxaItem(id1);
+            calcularTaxaItem(id2);
         });
     }
 
@@ -306,30 +295,70 @@
         renderizarSemana(semanaNum);
     }
 
+    function salvarEx(id) {
+        const feitas = document.getElementById(`feitas-${id}`).value;
+        const acertos = document.getElementById(`acertos-${id}`).value;
+        
+        estadoApp.exercicios[id] = { feitas, acertos };
+        salvarDados();
+        calcularTaxaItem(id);
+        calcularMediaGeral();
+    }
+
+    function calcularTaxaItem(id) {
+        const dados = estadoApp.exercicios[id];
+        const span = document.getElementById(`taxa-${id}`);
+        if (dados && dados.feitas > 0) {
+            const pct = Math.round((dados.acertos / dados.feitas) * 100);
+            span.innerText = `${pct}% acertos`;
+        } else {
+            span.innerText = "-";
+        }
+    }
+
     function atualizarProgresso(id) {
         const checkbox = document.getElementById(id);
-        checkadas[id] = checkbox.checked;
+        if(checkbox) estadoApp.checkadas[id] = checkbox.checked;
+        salvarDados();
 
-        // Calcula total de checks marcados no site inteiro (Total: 40 blocos em 4 semanas)
         let marcados = 0;
         for (let s = 1; s <= 4; s++) {
             for (let d = 0; d < 5; d++) {
-                if (checkadas[`s${s}d${d}t1`]) marcados++;
-                if (checkadas[`s${s}d${d}t2`]) marcados++;
+                if (estadoApp.checkadas[`s${s}d${d}t1`]) marcados++;
+                if (estadoApp.checkadas[`s${s}d${d}t2`]) marcados++;
             }
         }
 
         const totalTarefas = 40;
         const porcentagem = Math.round((marcados / totalTarefas) * 100);
-        
-        // Atualiza a barra visual e o texto de monitoramento
         document.getElementById('txt-progresso').innerText = `${marcados}/${totalTarefas} (${porcentagem}%)`;
         document.getElementById('barra-progresso').style.width = `${porcentagem}%`;
     }
 
-    // Inicialização
+    function calcularMediaGeral() {
+        let totalFeitas = 0;
+        let totalAcertos = 0;
+
+        for (let key in estadoApp.exercicios) {
+            const ex = estadoApp.exercicios[key];
+            if(ex.feitas) totalFeitas += parseInt(ex.feitas) || 0;
+            if(ex.acertos) totalAcertos += parseInt(ex.acertos) || 0;
+        }
+
+        const spanGeral = document.getElementById('media-acertos-geral');
+        if (totalFeitas > 0) {
+            const media = Math.round((totalAcertos / totalFeitas) * 100);
+            spanGeral.innerText = `${media}%`;
+        } else {
+            spanGeral.innerText = "0%";
+        }
+    }
+
+    // Inicialização da interface
     renderizarSemana(1);
     updateTimerDisplay();
+    atualizarProgresso();
+    calcularMediaGeral();
 </script>
 
 </body>
