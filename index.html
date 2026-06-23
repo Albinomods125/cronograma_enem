@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cronograma Enem com Pomodoro</title>
+    <style>
+        :root {
+            --primary: #2563eb;
+            --success: #10b981;
+            --danger: #ef4444;
+            --bg: #f8fafc;
+            --card-bg: #ffffff;
+            --text: #1e293b;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 20px;
+        }
+        @media (min-width: 768px) {
+            .container { grid-template-columns: 2fr 1fr; }
+            header { grid-column: span 2; }
+        }
+        header { text-align: center; margin-bottom: 10px; }
+        h1 { color: var(--primary); margin-bottom: 5px; }
+        
+        /* Painel Lateral / Timer e Monitoramento */
+        .sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        .panel {
+            background: var(--card-bg);
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            text-align: center;
+        }
+        
+        /* Timer Pomodoro */
+        .timer-display {
+            font-size: 3rem;
+            font-weight: bold;
+            margin: 10px 0;
+            font-family: monospace;
+            color: var(--text);
+        }
+        .timer-status {
+            font-weight: bold;
+            text-transform: uppercase;
+            color: var(--primary);
+            margin-bottom: 10px;
+        }
+        .timer-controls .btn-timer {
+            padding: 8px 15px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            margin: 0 3px;
+        }
+        .btn-start { background: var(--success); color: white; }
+        .btn-pause { background: #f59e0b; color: white; }
+        .btn-reset { background: var(--danger); color: white; }
+        
+        /* Barra de Progresso / Monitoramento */
+        .progress-container {
+            background: #e2e8f0;
+            border-radius: 10px;
+            height: 20px;
+            width: 100%;
+            overflow: hidden;
+            margin-top: 10px;
+        }
+        .progress-bar {
+            background: var(--success);
+            height: 100%;
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        /* Seção do Cronograma */
+        .main-content {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        .semana-navigation {
+            display: flex;
+            gap: 8px;
+        }
+        .btn-sem {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            background: #e2e8f0;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .btn-sem.active { background: var(--primary); color: white; }
+        
+        .dia-card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 15px 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        }
+        .dia-titulo {
+            color: var(--primary);
+            margin: 0 0 10px 0;
+            border-bottom: 2px solid #f1f5f9;
+            padding-bottom: 5px;
+        }
+        .pomodoro-flow {
+            font-size: 0.85rem;
+            color: #64748b;
+            background: #f1f5f9;
+            padding: 6px 10px;
+            border-radius: 6px;
+            margin-bottom: 10px;
+        }
+        .tarefa-item {
+            display: flex;
+            align-items: center;
+            margin: 8px 0;
+        }
+        .tarefa-item input {
+            margin-right: 10px;
+            transform: scale(1.2);
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>🎯 Dashboard Enem: Rotina & Minutos</h1>
+        <p>Estude usando a Técnica Pomodoro (25 min de foco + 5 min de descanso) e monitore sua evolução.</p>
+    </header>
+
+    <div class="main-content">
+        <div class="semana-navigation">
+            <button class="btn-sem active" onclick="mudarSemana(1)">Semana 1</button>
+            <button class="btn-sem" onclick="mudarSemana(2)">Semana 2</button>
+            <button class="btn-sem" onclick="mudarSemana(3)">Semana 3</button>
+            <button class="btn-sem" onclick="mudarSemana(4)">Semana 4</button>
+        </div>
+        <div id="cronograma-conteudo"></div>
+    </div>
+
+    <div class="sidebar">
+        <div class="panel">
+            <div class="timer-status" id="timer-label">Foco (Bloco 1)</div>
+            <div class="timer-display" id="timer-clock">25:00</div>
+            <div class="timer-controls">
+                <button class="btn-timer btn-start" onclick="startTimer()">Iniciar</button>
+                <button class="btn-timer btn-pause" onclick="pauseTimer()">Pausar</button>
+                <button class="btn-timer btn-reset" onclick="resetTimer()">Resetar</button>
+            </div>
+            <div style="margin-top: 15px; font-size: 0.8rem; color: #64748b;">
+                Alterne entre 25 min de Foco / 5 min de Pausa
+            </div>
+        </div>
+
+        <div class="panel">
+            <h3>📈 Monitoramento</h3>
+            <div style="font-size: 0.9rem; text-align: left; margin-bottom: 5px;">
+                Tarefas Concluídas: <span id="txt-progresso" style="font-weight: bold;">0/40</span>
+            </div>
+            <div class="progress-container">
+                <div class="progress-bar" id="barra-progresso"></div>
+            </div>
+            <div style="font-size: 0.85rem; color: #64748b; margin-top: 15px; text-align: left;">
+                • Cada dia possui 2 blocos de matérias estruturados em Pomodoros.<br>
+                • Marque o check ao concluir as tarefas do dia.
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Dados do Cronograma detalhado em minutos por dia
+    const dadosCronograma = {
+        1: [
+            { dia: "Segunda-feira", t1: "📊 Matemática Básica (Razão, Proporção, Regra de 3)", t2: "🧬 Biologia (Ecologia: Cadeias alimentares e impactos)" },
+            { dia: "Terça-feira", t1: "🌍 História (Brasil Colônia)", t2: "🌍 Geografia (Questões agrárias e uso da terra)" },
+            { dia: "Quarta-feira", t1: "📊 Matemática Básica (Porcentagem e frações)", t2: "🧬 Química (Química Ambiental: Poluição)" },
+            { dia: "Quinta-feira", t1: "🌍 Filosofia/Sociologia (Cidadania e Democracia)", t2: "🧬 Física (Mecânica: Cinemática)" },
+            { dia: "Sexta-feira", t1: "🔄 Revisão Geral da Semana 1", t2: "📝 15 Questões de Interpretação (Linguagens)" }
+        ],
+        2: [
+            { dia: "Segunda-feira", t1: "📊 Estatística (Gráficos, tabelas, média, moda, mediana)", t2: "🧬 Biologia (Citologia e Fisiologia Humana)" },
+            { dia: "Terça-feira", t1: "🌍 História (Brasil República)", t2: "🌍 Geografia (Urbanização e desafios)" },
+            { dia: "Quarta-feira", t1: "🧬 Química Orgânica (Funções e propriedades)", t2: "🧬 Física (Mecânica: Trabalho e Energia)" },
+            { dia: "Quinta-feira", t1: "🌍 Filosofia/Sociologia (Movimentos Sociais)", t2: "📊 Matemática (Geometria Plana: Áreas)" },
+            { dia: "Sexta-feira", t1: "🔄 Revisão Geral da Semana 2", t2: "📝 Treino de Redação (Eixos Sociais)" }
+        ],
+        3: [
+            { dia: "Segunda-feira", t1: "📊 Matemática (Geometria Espacial: Volumes)", t2: "🧬 Biologia (Genética: DNA, RNA e biotecnologia)" },
+            { dia: "Terça-feira", t1: "🌍 História (Segunda Guerra Mundial)", t2: "🌍 Geografia (Globalização e blocos)" },
+            { dia: "Quarta-feira", t1: "🧬 Química (Físico-química: Soluções e eletroquímica)", t2: "🧬 Física (Eletrodinâmica: Circuitos)" },
+            { dia: "Quinta-feira", t1: "🌍 Filosofia/Sociologia (Antiga e Moderna)", t2: "📊 Matemática (Funções de 1º e 2º graus)" },
+            { dia: "Sexta-feira", t1: "🔄 Revisão Geral da Semana 3", t2: "📝 Questões de Linguagens (Argumentação)" }
+        ],
+        4: [
+            { dia: "Segunda-feira", t1: "📊 Matemática (Trigonometria básica)", t2: "🧬 Física (Ondulatória e Termologia)" },
+            { dia: "Terça-feira", t1: "🌍 História (Ditadura Militar)", t2: "🌍 Geografia (Meio Ambiente e Cartografia)" },
+            { dia: "Quarta-feira", t1: "🧬 Revisão de Química Orgânica e Físico-química", t2: "🧬 Revisão de Ecologia" },
+            { dia: "Quinta-feira", t1: "📊 Revisão de Fórmulas (Geometria e Estatística)", t2: "📊 Revisão de Funções" },
+            { dia: "Sexta-feira", t1: "🧠 Revisão Leve de Resumos Próprios", t2: "🧘 Descanso e Preparação Mental" }
+        ]
+    };
+
+    let checkadas = {};
+    let currentSemana = 1;
+
+    // Lógica do Timer Pomodoro
+    let timerInterval = null;
+    let timeRemaining = 25 * 60; // 25 minutos em segundos
+    let isWorking = true;
+
+    function updateTimerDisplay() {
+        const minutes = Math.floor(timeRemaining / 60).toString().padStart(2, '0');
+        const seconds = (timeRemaining % 60).toString().padStart(2, '0');
+        document.getElementById('timer-clock').innerText = `${minutes}:${seconds}`;
+    }
+
+    function startTimer() {
+        if (timerInterval !== null) return;
+        timerInterval = setInterval(() => {
+            if (timeRemaining > 0) {
+                timeRemaining--;
+                updateTimerDisplay();
+            } else {
+                clearInterval(timerInterval);
+                timerInterval = null;
+                // Alterna automaticamente entre Foco e Descanso quando zera
+                isWorking = !isWorking;
+                timeRemaining = isWorking ? 25 * 60 : 5 * 60;
+                document.getElementById('timer-label').innerText = isWorking ? "Foco (25 min)" : "Pausa Curta (5 min)";
+                alert(isWorking ? "Hora de focar! Bloco iniciado." : "Muito bem! Tire 5 minutos de descanso.");
+                updateTimerDisplay();
+                startTimer();
+            }
+        }, 1000);
+    }
+
+    function pauseTimer() {
+        clearInterval(timerInterval);
+        timerInterval = null;
+    }
+
+    function resetTimer() {
+        pauseTimer();
+        isWorking = true;
+        timeRemaining = 25 * 60;
+        document.getElementById('timer-label').innerText = "Foco (Bloco 1)";
+        updateTimerDisplay();
+    }
+
+    // Interface e Monitoramento
+    function renderizarSemana(semanaNum) {
+        const container = document.getElementById('cronograma-conteudo');
+        container.innerHTML = '';
+        currentSemana = semanaNum;
+
+        dadosCronograma[semanaNum].forEach((item, index) => {
+            const id1 = `s${semanaNum}d${index}t1`;
+            const id2 = `s${semanaNum}d${index}t2`;
+
+            const card = document.createElement('div');
+            card.className = 'dia-card';
+            card.innerHTML = `
+                <h3 class="dia-titulo">${item.dia}</h3>
+                <div class="pomodoro-flow">⏱️ <strong>Rotina do dia:</strong> 25min (Matéria 1) → 5min Pausa → 25min (Matéria 1) → 20min Descanso Longo → Repete o ciclo para a Matéria 2.</div>
+                <div class="tarefa-item">
+                    <input type="checkbox" id="${id1}" ${checkadas[id1] ? 'checked' : ''} onchange="atualizarProgresso('${id1}')">
+                    <label for="${id1}"><strong>Bloco 1:</strong> ${item.t1}</label>
+                </div>
+                <div class="tarefa-item">
+                    <input type="checkbox" id="${id2}" ${checkadas[id2] ? 'checked' : ''} onchange="atualizarProgresso('${id2}')">
+                    <label for="${id2}"><strong>Bloco 2:</strong> ${item.t2}</label>
+                </div>
+            `;
+            container.appendChild(card);
+        });
+    }
+
+    function mudarSemana(semanaNum) {
+        document.querySelectorAll('.btn-sem').forEach((btn, idx) => {
+            btn.classList.toggle('active', idx === (semanaNum - 1));
+        });
+        renderizarSemana(semanaNum);
+    }
+
+    function atualizarProgresso(id) {
+        const checkbox = document.getElementById(id);
+        checkadas[id] = checkbox.checked;
+
+        // Calcula total de checks marcados no site inteiro (Total: 40 blocos em 4 semanas)
+        let marcados = 0;
+        for (let s = 1; s <= 4; s++) {
+            for (let d = 0; d < 5; d++) {
+                if (checkadas[`s${s}d${d}t1`]) marcados++;
+                if (checkadas[`s${s}d${d}t2`]) marcados++;
+            }
+        }
+
+        const totalTarefas = 40;
+        const porcentagem = Math.round((marcados / totalTarefas) * 100);
+        
+        // Atualiza a barra visual e o texto de monitoramento
+        document.getElementById('txt-progresso').innerText = `${marcados}/${totalTarefas} (${porcentagem}%)`;
+        document.getElementById('barra-progresso').style.width = `${porcentagem}%`;
+    }
+
+    // Inicialização
+    renderizarSemana(1);
+    updateTimerDisplay();
+</script>
+
+</body>
+</html>
